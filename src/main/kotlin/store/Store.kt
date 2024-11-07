@@ -1,7 +1,7 @@
 package store
 
 class Store(
-    private val products: MutableList<Product>,
+    private val products: List<Product>,
 ) {
 
     fun getProducts() = products.toList()
@@ -22,11 +22,10 @@ class Store(
 
     private fun updateProductsQuantity(purchaseProduct: Product): Int {
         var purchaseRemainingQuantity = purchaseProduct.getQuantity()
-        products.replaceAll { product ->
+        products.forEach { product ->
             if (product.name == purchaseProduct.name && purchaseRemainingQuantity > 0) {
                 purchaseRemainingQuantity = applyPurchaseToProduct(product, purchaseRemainingQuantity)
             }
-            product
         }
         return purchaseRemainingQuantity
     }

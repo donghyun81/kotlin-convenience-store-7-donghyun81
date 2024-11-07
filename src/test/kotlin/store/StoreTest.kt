@@ -5,11 +5,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class StoreTest {
-    private lateinit var defaultProducts: MutableList<Product>
+    private lateinit var defaultProducts: List<Product>
 
     @BeforeEach
     fun `setUp`() {
-        defaultProducts = mutableListOf(
+        defaultProducts = listOf(
             Product("사과", 1000, 10, "MD추천 상품"),
             Product("사과", 1000, 10, "null"),
             Product("수박", 1000, 10, "MD추천 상품"),
