@@ -12,12 +12,12 @@ class StoreTest {
     @BeforeEach
     fun setUp() {
         defaultProducts = listOf(
-            Product("사과", 1000, 10, "MD추천 상품"),
+            Product("사과", 1000, 10, "MD추천상품"),
             Product("사과", 1000, 10, "null"),
             Product("수박", 2000, 10, "null"),
         )
         defaultPromotion = listOf(
-            Promotion("MD추천상품", 1, 1, "2024-01-01", "2024-12-31"),
+            Promotion("MD추천상품", 3, 4, "2024-01-01", "2024-12-31"),
         )
         store = Store(defaultProducts, defaultPromotion)
     }
@@ -43,6 +43,13 @@ class StoreTest {
         val purchaseProduct = RequestedProduct("수박", 1)
         val result = store.isPromotion(purchaseProduct)
         val expected = false
+        assertEquals(expected, result)
+    }
+
+    @Test
+    fun `구매할때 추가로 증정할 프로모션을 반환 하는 기능 테스트`() {
+        val result = store.applyPromotionProduct(RequestedProduct("사과", 6))
+        val expected = RequestedProduct("사과", 4)
         assertEquals(expected, result)
     }
 
