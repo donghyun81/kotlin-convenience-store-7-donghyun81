@@ -10,5 +10,9 @@ data class Product(
         quantity = (quantity - buyCount).coerceAtLeast(0)
     }
 
+    fun calculateExcessQuantity(buyCount: Int): Int {
+        return (buyCount - quantity).coerceAtLeast(0)
+    }
+
     fun getQuantity() = quantity
 }
