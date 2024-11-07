@@ -14,10 +14,10 @@ class StoreTest {
         defaultProducts = listOf(
             Product("사과", 1000, 10, "MD추천 상품"),
             Product("사과", 1000, 10, "null"),
+            Product("수박", 2000, 10, "null"),
         )
         defaultPromotion = listOf(
             Promotion("MD추천상품", 1, 1, "2024-01-01", "2024-12-31"),
-            Promotion("반짝할인", 1, 1, "2024-11-01", "2024-11-30")
         )
         store = Store(defaultProducts, defaultPromotion)
     }
@@ -39,11 +39,20 @@ class StoreTest {
     }
 
     @Test
+    fun `구매하는 제품이 프로모션인지 확인하는 기능 테스트`() {
+        val purchaseProduct = RequestedProduct("수박", 1)
+        val result = store.isPromotion(purchaseProduct)
+        val expected = false
+        assertEquals(expected, result)
+    }
+
+    @Test
     fun `고객이 상품을 구매할 때마다, 결제된 수량만큼 해당 상품의 재고에서 차감하고 최신 상태를 반환하는 테스트`() {
         store.buyProduct(RequestedProduct("사과", 14))
         val result = listOf(
             Product("사과", 1000, 0, "MD추천 상품"),
-            Product("사과", 1000, 6, "null")
+            Product("사과", 1000, 6, "null"),
+            Product("수박", 2000, 10, "null"),
         )
         val expected = store.getProducts()
         assertEquals(expected, result)
