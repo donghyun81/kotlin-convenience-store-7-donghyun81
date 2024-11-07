@@ -1,7 +1,8 @@
 package store
 
 class Store(
-    private val products: List<Product>
+    private val products: List<Product>,
+    private val promotions: List<Promotion>
 ) {
 
     fun getProducts() = products.toList()
@@ -14,6 +15,12 @@ class Store(
             }
         }
         return currentRequestedProductCount < 0
+    }
+
+    fun isPromotion(requestedProduct: RequestedProduct): Boolean {
+        val product = products.find { it.name == requestedProduct.name } ?: return false
+        promotions.find { it.name == product.promotion } ?: return false
+        return true
     }
 
     fun buyProduct(requestedProduct: RequestedProduct) {
