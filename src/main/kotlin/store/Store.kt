@@ -23,18 +23,35 @@ class Store(
         return true
     }
 
+    fun applyPromotionProduct(requestedProduct: RequestedProduct): RequestedProduct {
+        val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
+        val promotion = promotions.find { it.name == product.promotion } ?: throw IllegalArgumentException()
+        if (product.getQuantity() < requestedProduct.count) return requestedProduct.copy(count = 0)
+        val reminder = requestedProduct.count.rem(promotion.buy)
+        return requestedProduct.copy(count = promotion.get - reminder)
+    }
+
+    fun getNonPromotionalProducts(requestedProduct: RequestedProduct): RequestedProduct {
+        val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
+        val promotion = promotions.find { it.name == product.promotion } ?: throw IllegalArgumentException()
+        if (product.getQuantity() < requestedProduct.count) {
+            val reminder = product.getQuantity().rem(promotion.buy + promotion.get)
+            return requestedProduct.copy(count = requestedProduct.count + reminder - product.getQuantity())
+        }
+        return requestedProduct.copy(count = 0)
+    }
+
     fun buyProduct(requestedProduct: RequestedProduct) {
         updateProductsQuantity(requestedProduct)
     }
 
-    private fun updateProductsQuantity(requestedProduct: RequestedProduct): Int {
+    private fun updateProductsQuantity(requestedProduct: RequestedProduct) {
         var currentRequestedProductCount = requestedProduct.count
         products.forEach { product ->
             if (product.name == requestedProduct.name && currentRequestedProductCount > 0) {
                 currentRequestedProductCount = applyPurchaseToProduct(product, currentRequestedProductCount)
             }
         }
-        return currentRequestedProductCount
     }
 
     private fun applyPurchaseToProduct(product: Product, purchaseRemainingQuantity: Int): Int {
