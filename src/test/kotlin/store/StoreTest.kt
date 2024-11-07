@@ -3,6 +3,8 @@ package store
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
 class StoreTest {
     private lateinit var defaultProducts: List<Product>
@@ -50,6 +52,19 @@ class StoreTest {
     fun `구매할때 추가로 증정할 프로모션을 반환 하는 기능 테스트`() {
         val result = store.applyPromotionProduct(RequestedProduct("사과", 6))
         val expected = RequestedProduct("사과", 4)
+        assertEquals(expected, result)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "10, 0",
+        "13, 6",
+        "0, 0",
+        "1000,993"
+    )
+    fun `프로모션이 들어가지 않는 제품을 반환 하는 기능 테스트`(requestCount:Int,expectedCount:Int) {
+        val result = store.getNonPromotionalProducts(RequestedProduct("사과", requestCount))
+        val expected = RequestedProduct("사과", expectedCount)
         assertEquals(expected, result)
     }
 
