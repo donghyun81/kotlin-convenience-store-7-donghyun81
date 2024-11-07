@@ -1,33 +1,33 @@
 package store
 
 class Store(
-    private val products: List<Product>,
+    private val products: List<Product>
 ) {
 
     fun getProducts() = products.toList()
 
-    fun hasProduct(purchaseProduct: Product): Boolean {
-        var currentPurchaseCount = purchaseProduct.getQuantity()
+    fun hasProduct(requestedProduct: RequestedProduct): Boolean {
+        var currentRequestedProductCount = requestedProduct.count
         products.map { product ->
-            if (product.name == purchaseProduct.name) {
-                currentPurchaseCount -= product.getQuantity()
+            if (product.name == requestedProduct.name) {
+                currentRequestedProductCount -= product.getQuantity()
             }
         }
-        return currentPurchaseCount < 0
+        return currentRequestedProductCount < 0
     }
 
-    fun buyProduct(purchaseProduct: Product) {
-        updateProductsQuantity(purchaseProduct)
+    fun buyProduct(requestedProduct: RequestedProduct) {
+        updateProductsQuantity(requestedProduct)
     }
 
-    private fun updateProductsQuantity(purchaseProduct: Product): Int {
-        var purchaseRemainingQuantity = purchaseProduct.getQuantity()
+    private fun updateProductsQuantity(requestedProduct: RequestedProduct): Int {
+        var currentRequestedProductCount = requestedProduct.count
         products.forEach { product ->
-            if (product.name == purchaseProduct.name && purchaseRemainingQuantity > 0) {
-                purchaseRemainingQuantity = applyPurchaseToProduct(product, purchaseRemainingQuantity)
+            if (product.name == requestedProduct.name && currentRequestedProductCount > 0) {
+                currentRequestedProductCount = applyPurchaseToProduct(product, currentRequestedProductCount)
             }
         }
-        return purchaseRemainingQuantity
+        return currentRequestedProductCount
     }
 
     private fun applyPurchaseToProduct(product: Product, purchaseRemainingQuantity: Int): Int {
