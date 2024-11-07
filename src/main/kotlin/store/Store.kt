@@ -1,7 +1,7 @@
 package store
 
-class Inventory(
-    private val products: MutableList<Product>
+class Store(
+    private val products: MutableList<Product>,
 ) {
 
     fun getProducts() = products.toList()
