@@ -12,6 +12,10 @@ class StoreController(
         val store = createStore()
         outputView.printStoreProducts(store.getProducts())
         val requestedProducts = createRequestedProducts()
+        requestedProducts.forEach { requestedProduct ->
+            require(store.hasProduct(requestedProduct))
+            println(buyRequestProducts(store, requestedProduct))
+        }
     }
 
     private fun createStore(): Store = Store(getProducts(), getPromotion())
@@ -43,6 +47,54 @@ class StoreController(
         val (name, count) = requestedProductInput.removeSurrounding("[", "]").split("-")
         return RequestedProduct(name, count.toInt())
     }
+
+    private fun buyRequestProducts(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
+        store.hasProduct(requestedProduct)
+        if (store.isPromotion(requestedProduct)) {
+            val promotionResult = getPromotionProducts(store, requestedProduct)
+            return promotionResult
+        }
+        return store.buyProduct(requestedProduct)
+    }
+
+    private fun getPromotionProducts(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
+        val addProduct = store.applyPromotionProduct(requestedProduct)
+        if (addProduct.count > 0) return handleAddPromotionProduct(store, requestedProduct, addProduct)
+
+        val nonPromotionProducts = store.getNonPromotionalProducts(requestedProduct)
+        if (nonPromotionProducts.count > 0) return handleNonPromotionProducts(
+            store,
+            requestedProduct,
+            nonPromotionProducts
+        )
+        return store.buyProduct(requestedProduct)
+    }
+
+    private fun handleAddPromotionProduct(
+        store: Store,
+        requestedProduct: RequestedProduct,
+        addProduct: RequestedProduct
+    ): PurchaseProduct {
+        val yesOrNo = inputView.readAddPromotionProduct(addProduct)
+        if (yesOrNo == "Y") {
+            val totalCount = requestedProduct.count + addProduct.count
+            return store.buyProduct(requestedProduct.copy(count = totalCount), addProduct.count)
+        }
+        return store.buyProduct(requestedProduct)
+    }
+
+    private fun handleNonPromotionProducts(
+        store: Store,
+        requestedProduct: RequestedProduct,
+        nonPromotionProducts: RequestedProduct
+    ): PurchaseProduct {
+        val yesOrNo = inputView.readHasNotPromotionProduct(nonPromotionProducts)
+        if (yesOrNo == "Y") return store.buyProduct(requestedProduct)
+        return store.buyProduct(
+            requestedProduct.copy(count = requestedProduct.count - nonPromotionProducts.count)
+        )
+    }
+
 
     private fun String.toNullOrValue(): String? {
         if (this == "null") return null
