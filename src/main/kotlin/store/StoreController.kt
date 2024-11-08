@@ -12,10 +12,7 @@ class StoreController(
         val store = createStore()
         outputView.printStoreProducts(store.getProducts())
         val requestedProducts = createRequestedProducts()
-        requestedProducts.forEach { requestedProduct ->
-            require(store.hasProduct(requestedProduct))
-            println(buyRequestProducts(store, requestedProduct))
-        }
+        val purchaseProducts = createPurchaseProducts(store, requestedProducts)
     }
 
     private fun createStore(): Store = Store(getProducts(), getPromotion())
@@ -46,6 +43,15 @@ class StoreController(
     private fun createRequestProduct(requestedProductInput: String): RequestedProduct {
         val (name, count) = requestedProductInput.removeSurrounding("[", "]").split("-")
         return RequestedProduct(name, count.toInt())
+    }
+
+    private fun createPurchaseProducts(store: Store, requestedProducts: List<RequestedProduct>): List<PurchaseProduct> {
+        val purchaseProducts = mutableListOf<PurchaseProduct>()
+        requestedProducts.forEach { requestedProduct ->
+            require(store.hasProduct(requestedProduct))
+            purchaseProducts.add(buyRequestProducts(store, requestedProduct))
+        }
+        return purchaseProducts.toList()
     }
 
     private fun buyRequestProducts(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
