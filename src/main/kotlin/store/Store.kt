@@ -41,8 +41,21 @@ class Store(
         return requestedProduct.copy(count = 0)
     }
 
-    fun buyProduct(requestedProduct: RequestedProduct) {
+    fun getPromotionalProducts(requestedProduct: RequestedProduct): RequestedProduct {
+        val product = products.find { it.name == requestedProduct.name } ?: return requestedProduct
+        val promotion = promotions.find { it.name == product.promotion } ?: return requestedProduct
+        if (requestedProduct.count > product.getQuantity()) {
+            val reminder = product.getQuantity().rem(promotion.buy + promotion.get)
+            return requestedProduct.copy(count = product.getQuantity() - reminder)
+        }
+        val reminder = requestedProduct.count.rem(promotion.buy + promotion.get)
+        return requestedProduct.copy(count = requestedProduct.count - reminder)
+    }
+
+    fun buyProduct(requestedProduct: RequestedProduct): Product {
+        val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
         updateProductsQuantity(requestedProduct)
+        return product.copy(quantity = requestedProduct.count)
     }
 
     private fun updateProductsQuantity(requestedProduct: RequestedProduct) {
