@@ -27,8 +27,9 @@ class Store(
         val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
         val promotion = promotions.find { it.name == product.promotion } ?: throw IllegalArgumentException()
         if (product.getQuantity() < requestedProduct.count) return requestedProduct.copy(count = 0)
-        val reminder = requestedProduct.count.rem(promotion.buy)
-        return requestedProduct.copy(count = promotion.get - reminder)
+        val reminder = requestedProduct.count.rem(promotion.buy + promotion.get)
+        val requestCount = if (reminder == promotion.buy) promotion.get else 0
+        return requestedProduct.copy(count = requestCount)
     }
 
     fun getNonPromotionalProducts(requestedProduct: RequestedProduct): RequestedProduct {
@@ -52,10 +53,25 @@ class Store(
         return requestedProduct.copy(count = requestedProduct.count - reminder)
     }
 
-    fun buyProduct(requestedProduct: RequestedProduct): Product {
+    private fun getApplyCount(requestedProduct: RequestedProduct): Int {
         val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
+        val promotion = promotions.find { it.name == product.promotion } ?: return 0
+        if (requestedProduct.count > product.getQuantity()) {
+            return product.getQuantity().div(promotion.buy + promotion.get)
+        }
+        return requestedProduct.count.div(promotion.buy + promotion.get)
+    }
+
+    fun buyProduct(requestedProduct: RequestedProduct, applyProductCount: Int = 0): PurchaseProduct {
+        val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
+        val applyCount = getApplyCount(requestedProduct)
         updateProductsQuantity(requestedProduct)
-        return product.copy(quantity = requestedProduct.count)
+        return PurchaseProduct(
+            product.name,
+            count = requestedProduct.count,
+            apply = applyCount,
+            totalPrice = requestedProduct.count * product.price
+        )
     }
 
     private fun updateProductsQuantity(requestedProduct: RequestedProduct) {
