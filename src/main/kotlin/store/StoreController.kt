@@ -11,6 +11,7 @@ class StoreController(
         outputView.printStart()
         val store = createStore()
         outputView.printStoreProducts(store.getProducts())
+        val requestedProducts = createRequestedProducts()
     }
 
     private fun createStore(): Store = Store(getProducts(), getPromotion())
@@ -29,6 +30,18 @@ class StoreController(
             val (name, buy, get, start_date, end_date) = promotion.split(",")
             Promotion(name, buy.toInt(), get.toInt(), start_date, end_date)
         }
+    }
+
+    private fun createRequestedProducts(): List<RequestedProduct> {
+        val requestedProducts = inputView.readBuyItem().split(",").map { requestedProductInput ->
+            createRequestProduct(requestedProductInput)
+        }
+        return requestedProducts
+    }
+
+    private fun createRequestProduct(requestedProductInput: String): RequestedProduct {
+        val (name, count) = requestedProductInput.removeSurrounding("[", "]").split("-")
+        return RequestedProduct(name, count.toInt())
     }
 
     private fun String.toNullOrValue(): String? {
