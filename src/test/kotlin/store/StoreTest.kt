@@ -1,10 +1,12 @@
 package store
 
+import camp.nextstep.edu.missionutils.DateTimes
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import java.time.LocalDate
 
 class StoreTest {
     private lateinit var defaultProducts: List<Product>
@@ -41,10 +43,38 @@ class StoreTest {
     }
 
     @Test
-    fun `구매하는 제품이 프로모션인지 확인하는 기능 테스트`() {
+    fun `구매하는 제품이 프로모션이 없을 경우 기능 테스트`() {
         val purchaseProduct = RequestedProduct("수박", 1)
-        val result = store.isPromotion(purchaseProduct)
+        val currentDate = LocalDate.of(2024, 6, 6)
+        val result = store.isPromotion(purchaseProduct, currentDate)
         val expected = false
+        assertEquals(expected, result)
+    }
+
+    @Test
+    fun `구매하는 제품이 프로모션이 있을 경우 기능 테스트`() {
+        val purchaseProduct = RequestedProduct("사과", 1)
+        val currentDate = LocalDate.of(2024, 6, 6)
+        val result = store.isPromotion(purchaseProduct, currentDate)
+        val expected = true
+        assertEquals(expected, result)
+    }
+
+    @Test
+    fun `프로모션 시작 날짜에 구매 할 경우 적용되는지 테스트`() {
+        val purchaseProduct = RequestedProduct("사과", 1)
+        val testDate = LocalDate.of(2024, 1, 1)
+        val result = store.isPromotion(purchaseProduct, testDate)
+        val expected = true
+        assertEquals(expected, result)
+    }
+
+    @Test
+    fun `프로모션 마지막 날짜에 구매 할 경우 적용되는지 테스트`() {
+        val purchaseProduct = RequestedProduct("사과", 1)
+        val testDate = LocalDate.of(2024, 12, 31)
+        val result = store.isPromotion(purchaseProduct, testDate)
+        val expected = true
         assertEquals(expected, result)
     }
 
@@ -62,7 +92,7 @@ class StoreTest {
         "0, 0",
         "1000,993"
     )
-    fun `프로모션이 들어가지 않는 제품을 반환 하는 기능 테스트`(requestCount:Int,expectedCount:Int) {
+    fun `프로모션이 들어가지 않는 제품을 반환 하는 기능 테스트`(requestCount: Int, expectedCount: Int) {
         val result = store.getNonPromotionalProducts(RequestedProduct("사과", requestCount))
         val expected = RequestedProduct("사과", expectedCount)
         assertEquals(expected, result)
@@ -73,7 +103,7 @@ class StoreTest {
         "8, 7",
         "17, 7",
     )
-    fun `프로모션이 들어간 제품을 반환 하는 기능 테스트`(requestCount:Int,expectedCount:Int) {
+    fun `프로모션이 들어간 제품을 반환 하는 기능 테스트`(requestCount: Int, expectedCount: Int) {
         val result = store.getPromotionalProducts(RequestedProduct("사과", requestCount))
         val expected = RequestedProduct("사과", expectedCount)
         assertEquals(expected, result)
