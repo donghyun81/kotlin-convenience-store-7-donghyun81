@@ -11,9 +11,18 @@ class OutputView {
     fun printStoreProducts(products: List<Product>) {
         println("현재 보유하고 있는 상품입니다.\n")
         products.forEach { product ->
-            println("- ${product.name} ${product.price.toWonFormat()}원 ${product.getQuantity()}개 ${product.promotion ?: ""}")
+            println(
+                "- ${product.name} ${product.price.toWonFormat()}원 ${
+                    product.getQuantity().toCountFormat()
+                } ${product.promotion ?: ""}"
+            )
         }
         println()
+    }
+
+    private fun Int.toCountFormat(): String {
+        if (this == 0) return "재고 없음"
+        return toString() + "개"
     }
 
     fun printReceipt(purchaseProducts: List<PurchaseProduct>) {
