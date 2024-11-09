@@ -20,10 +20,21 @@ class StoreController(
 
     private fun getProducts(): List<Product> {
         val productsResourcePath = "src/main/resources/products.md"
-        return File(productsResourcePath).readLines().drop(1).map { product ->
+        val products = File(productsResourcePath).readLines().drop(1).map { product ->
             val (name, price, quantity, promotion) = product.split(",")
             Product(name, price.toInt(), quantity.toInt(), promotion.toNullOrValue())
-        }
+        }.toMutableList()
+        addNonPromotionProducts(products)
+        return products.groupBy { it.name }.flatMap { (_, group) -> group.sortedByDescending { it.promotion } }.toList()
+    }
+
+    private fun addNonPromotionProducts(products: MutableList<Product>) {
+        products.filter { product -> isNonPromotionProducts(product, products.toList()) }
+            .forEach { products.add(it.copy(quantity = 0, promotion = null)) }
+    }
+
+    private fun isNonPromotionProducts(product: Product, products: List<Product>): Boolean {
+        return product.promotion != null && products.find { it.name == product.name && it.promotion == null } == null
     }
 
     private fun getPromotion(): List<Promotion> {
