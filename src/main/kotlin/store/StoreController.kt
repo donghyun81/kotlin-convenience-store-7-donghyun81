@@ -1,5 +1,6 @@
 package store
 
+import camp.nextstep.edu.missionutils.DateTimes
 import java.io.File
 
 class StoreController(
@@ -13,7 +14,7 @@ class StoreController(
         outputView.printStoreProducts(store.getProducts())
         val requestedProducts = createRequestedProducts()
         val purchaseProducts = createPurchaseProducts(store, requestedProducts)
-        outputView.printReceipt(purchaseProducts,isMemberShip())
+        outputView.printReceipt(purchaseProducts, isMemberShip())
     }
 
     private fun createStore(): Store = Store(getProducts(), getPromotion())
@@ -68,7 +69,8 @@ class StoreController(
 
     private fun buyRequestProducts(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
         store.hasProduct(requestedProduct)
-        if (store.isPromotion(requestedProduct)) {
+        val currentDate = DateTimes.now().toLocalDate()
+        if (store.isPromotion(requestedProduct, currentDate)) {
             val promotionResult = getPromotionProducts(store, requestedProduct)
             return promotionResult
         }

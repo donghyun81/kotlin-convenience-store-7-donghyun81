@@ -1,5 +1,8 @@
 package store
 
+import camp.nextstep.edu.missionutils.DateTimes
+import java.time.LocalDate
+
 class Store(
     private val products: List<Product>,
     private val promotions: List<Promotion>
@@ -17,10 +20,16 @@ class Store(
         return currentRequestedProductCount <= 0
     }
 
-    fun isPromotion(requestedProduct: RequestedProduct): Boolean {
+    fun isPromotion(requestedProduct: RequestedProduct, currentDate: LocalDate): Boolean {
         val product = products.find { it.name == requestedProduct.name } ?: return false
-        promotions.find { it.name == product.promotion } ?: return false
-        return true
+        val promotion = promotions.find { it.name == product.promotion } ?: return false
+        return isPromotionDate(promotion, currentDate)
+    }
+
+    private fun isPromotionDate(promotion: Promotion, currentDate: LocalDate): Boolean {
+        val startDate = LocalDate.parse(promotion.startDate)
+        val endDate = LocalDate.parse(promotion.endDate)
+        return currentDate in startDate..endDate
     }
 
     fun applyPromotionProduct(requestedProduct: RequestedProduct): RequestedProduct {
@@ -56,6 +65,8 @@ class Store(
     private fun getApplyCount(requestedProduct: RequestedProduct): Int {
         val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
         val promotion = promotions.find { it.name == product.promotion } ?: return 0
+        val currentDate = DateTimes.now().toLocalDate()
+        if (isPromotion(requestedProduct, currentDate).not()) return 0
         if (requestedProduct.count > product.getQuantity()) {
             return product.getQuantity().div(promotion.buy + promotion.get)
         }
