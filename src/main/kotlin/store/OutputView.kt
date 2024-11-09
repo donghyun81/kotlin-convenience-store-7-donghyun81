@@ -25,10 +25,10 @@ class OutputView {
         return toString() + "개"
     }
 
-    fun printReceipt(purchaseProducts: List<PurchaseProduct>) {
+    fun printReceipt(purchaseProducts: List<PurchaseProduct>, isMemberShip: Boolean) {
         printPurchaseProducts(purchaseProducts)
         printPromotionProducts(purchaseProducts)
-        printTotalReceipt(purchaseProducts)
+        printTotalReceipt(purchaseProducts, isMemberShip)
     }
 
     private fun printPurchaseProducts(purchaseProduct: List<PurchaseProduct>) {
@@ -50,19 +50,21 @@ class OutputView {
         }
     }
 
-    private fun printTotalReceipt(
-        purchaseProducts: List<PurchaseProduct>
-    ) {
+    private fun printTotalReceipt(purchaseProducts: List<PurchaseProduct>, isMemberShip: Boolean) {
         val totalPrice = purchaseProducts.sumOf { it.count * it.price }
         val promotionDiscount = purchaseProducts.sumOf { it.apply * it.price }
         val promotionPrice = purchaseProducts.map { it.promotionCount * it.price }.sumOf { it }
-        println(promotionPrice)
-        val membershipDiscount = (totalPrice - promotionPrice).times(0.3).toInt()
+        val membershipDiscount = getMembershipDiscount(isMemberShip, totalPrice, promotionPrice)
         println("====== === === === === === === === === === ===")
         println("총구매액        ${purchaseProducts.sumOf { it.count }}    ${totalPrice.toWonFormat()}")
         println("행사 할인 \t\t\t -$promotionDiscount")
         println("멤버십할인\t\t\t-$membershipDiscount")
-        println("내실돈\t\t\t ${totalPrice - promotionDiscount - membershipDiscount}")
+        println("내실돈\t\t\t ${(totalPrice - promotionDiscount - membershipDiscount).toWonFormat()}")
+    }
+
+    private fun getMembershipDiscount(isMemberShip: Boolean, totalPrice: Int, promotionPrice: Int): Int {
+        if (isMemberShip) return (totalPrice - promotionPrice).times(0.3).toInt().coerceAtMost(8000)
+        return 0
     }
 
     private fun Int.toWonFormat(): String {
