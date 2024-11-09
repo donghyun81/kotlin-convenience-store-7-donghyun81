@@ -13,7 +13,7 @@ class StoreController(
         outputView.printStoreProducts(store.getProducts())
         val requestedProducts = createRequestedProducts()
         val purchaseProducts = createPurchaseProducts(store, requestedProducts)
-        outputView.printReceipt(purchaseProducts)
+        outputView.printReceipt(purchaseProducts,isMemberShip())
     }
 
     private fun createStore(): Store = Store(getProducts(), getPromotion())
@@ -113,6 +113,7 @@ class StoreController(
         )
     }
 
+    private fun isMemberShip() = inputView.readIsMembershipDiscount() == "Y"
 
     private fun String.toNullOrValue(): String? {
         if (this == "null") return null
