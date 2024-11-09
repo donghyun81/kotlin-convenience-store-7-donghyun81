@@ -13,6 +13,7 @@ class StoreController(
         outputView.printStoreProducts(store.getProducts())
         val requestedProducts = createRequestedProducts()
         val purchaseProducts = createPurchaseProducts(store, requestedProducts)
+        outputView.printReceipt(purchaseProducts)
     }
 
     private fun createStore(): Store = Store(getProducts(), getPromotion())
@@ -84,7 +85,7 @@ class StoreController(
         val yesOrNo = inputView.readAddPromotionProduct(addProduct)
         if (yesOrNo == "Y") {
             val totalCount = requestedProduct.count + addProduct.count
-            return store.buyProduct(requestedProduct.copy(count = totalCount), addProduct.count)
+            return store.buyProduct(requestedProduct.copy(count = totalCount))
         }
         return store.buyProduct(requestedProduct)
     }

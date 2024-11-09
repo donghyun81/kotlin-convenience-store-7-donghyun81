@@ -14,7 +14,7 @@ class Store(
                 currentRequestedProductCount -= product.getQuantity()
             }
         }
-        return currentRequestedProductCount < 0
+        return currentRequestedProductCount <= 0
     }
 
     fun isPromotion(requestedProduct: RequestedProduct): Boolean {
@@ -62,15 +62,17 @@ class Store(
         return requestedProduct.count.div(promotion.buy + promotion.get)
     }
 
-    fun buyProduct(requestedProduct: RequestedProduct, applyProductCount: Int = 0): PurchaseProduct {
+    fun buyProduct(requestedProduct: RequestedProduct): PurchaseProduct {
         val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
+        val promotion = promotions.find { it.name == product.promotion }
         val applyCount = getApplyCount(requestedProduct)
         updateProductsQuantity(requestedProduct)
         return PurchaseProduct(
             product.name,
             count = requestedProduct.count,
             apply = applyCount,
-            totalPrice = requestedProduct.count * product.price
+            price = product.price,
+            promotionCount = applyCount * ((promotion?.buy ?: 0) + (promotion?.get ?: 0))
         )
     }
 
