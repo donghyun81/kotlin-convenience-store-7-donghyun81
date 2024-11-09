@@ -12,8 +12,10 @@ class StoreController(
         outputView.printStart()
         val store = createStore()
         outputView.printStoreProducts(store.getProducts())
-        val requestedProducts = createRequestedProducts()
-        val purchaseProducts = createPurchaseProducts(store, requestedProducts)
+        val purchaseProducts = retryInput {
+            val requestedProducts = createRequestedProducts()
+            createPurchaseProducts(store, requestedProducts)
+        }
         outputView.printReceipt(purchaseProducts, isMemberShip())
     }
 
@@ -54,6 +56,7 @@ class StoreController(
     }
 
     private fun createRequestProduct(requestedProductInput: String): RequestedProduct {
+        require(requestedProductInput.first() == '[' && requestedProductInput.last() == ']') { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
         val (name, count) = requestedProductInput.removeSurrounding("[", "]").split("-")
         return RequestedProduct(name, count.toInt())
     }
@@ -61,7 +64,7 @@ class StoreController(
     private fun createPurchaseProducts(store: Store, requestedProducts: List<RequestedProduct>): List<PurchaseProduct> {
         val purchaseProducts = mutableListOf<PurchaseProduct>()
         requestedProducts.forEach { requestedProduct ->
-            require(store.hasProduct(requestedProduct))
+            require(store.hasProduct(requestedProduct)) { "[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요." }
             purchaseProducts.add(buyRequestProducts(store, requestedProduct))
         }
         return purchaseProducts.toList()
