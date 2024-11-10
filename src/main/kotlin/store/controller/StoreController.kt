@@ -70,6 +70,7 @@ class StoreController(
     }
 
     private fun createRequestProduct(requestedProductInput: String): RequestedProduct {
+        require(requestedProductInput.isNotEmpty()) { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
         require(requestedProductInput.first() == '[' && requestedProductInput.last() == ']') { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
         require(requestedProductInput.split("-").size == 2) { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
         val (name, count) = requestedProductInput.removeSurrounding("[", "]").split("-")
