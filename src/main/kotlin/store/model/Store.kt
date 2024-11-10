@@ -14,11 +14,9 @@ class Store(
         products.find { it.name == requestedProduct.name }
             ?: throw IllegalArgumentException("[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요.")
         products.map { product ->
-            if (product.name == requestedProduct.name) {
-                remainingRequestCount -= product.getQuantity()
-            }
+            if (product.name == requestedProduct.name) remainingRequestCount -= product.getQuantity()
         }
-        return remainingRequestCount <= 0
+        return remainingRequestCount <= ZERO
     }
 
     fun isPromotion(requestedProduct: RequestedProduct, currentDate: LocalDate): Boolean {
@@ -36,10 +34,10 @@ class Store(
     fun calculatePromotionAppliedProduct(requestedProduct: RequestedProduct): RequestedProduct {
         val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
         val promotion = promotions.find { it.name == product.promotion } ?: throw IllegalArgumentException()
-        if (requestedProduct.count >= product.getQuantity()) return requestedProduct.copy(count = 0)
+        if (requestedProduct.count >= product.getQuantity()) return requestedProduct.copy(count = ZERO)
         val promotionCycle = promotion.buy + promotion.get
         val reminder = requestedProduct.count % (promotionCycle)
-        if (reminder < promotion.buy) return requestedProduct.copy(count = 0)
+        if (reminder < promotion.buy) return requestedProduct.copy(count = ZERO)
         val requestCount = promotionCycle - reminder
         return requestedProduct.copy(count = requestCount)
     }
@@ -51,7 +49,7 @@ class Store(
             val reminder = product.getQuantity().rem(promotion.buy + promotion.get)
             return requestedProduct.copy(count = requestedProduct.count + reminder - product.getQuantity())
         }
-        return requestedProduct.copy(count = 0)
+        return requestedProduct.copy(count = ZERO)
     }
 
     fun calculatePromotionalProducts(requestedProduct: RequestedProduct): RequestedProduct {
@@ -71,19 +69,18 @@ class Store(
         val applyCount = calculateApplyCount(requestedProduct)
         updateProductsQuantity(requestedProduct)
         return PurchaseProduct(
-            product.name,
-            count = requestedProduct.count,
-            apply = applyCount,
-            price = product.price,
-            promotionCount = applyCount * ((promotion?.buy ?: 0) + (promotion?.get ?: 0))
+            product.name, requestedProduct.count, applyCount, product.price, getPromotionCount(applyCount, promotion)
         )
     }
 
+    private fun getPromotionCount(applyCount: Int, promotion: Promotion?) =
+        applyCount * ((promotion?.buy ?: ZERO) + (promotion?.get ?: ZERO))
+
     private fun calculateApplyCount(requestedProduct: RequestedProduct): Int {
         val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
-        val promotion = promotions.find { it.name == product.promotion } ?: return 0
+        val promotion = promotions.find { it.name == product.promotion } ?: return ZERO
         val currentDate = DateTimes.now().toLocalDate()
-        if (isPromotion(requestedProduct, currentDate).not()) return 0
+        if (isPromotion(requestedProduct, currentDate).not()) return ZERO
         if (requestedProduct.count > product.getQuantity()) {
             return product.getQuantity().div(promotion.buy + promotion.get)
         }
@@ -93,7 +90,7 @@ class Store(
     private fun updateProductsQuantity(requestedProduct: RequestedProduct) {
         var currentRequestedProductCount = requestedProduct.count
         products.forEach { product ->
-            if (product.name == requestedProduct.name && currentRequestedProductCount > 0) {
+            if (product.name == requestedProduct.name && currentRequestedProductCount > ZERO) {
                 currentRequestedProductCount = updateProductQuantity(product, currentRequestedProductCount)
             }
         }
@@ -103,5 +100,9 @@ class Store(
         val excess = product.calculateExcessQuantity(purchaseRemainingQuantity)
         product.deductQuantity(purchaseRemainingQuantity)
         return excess
+    }
+
+    companion object {
+        private const val ZERO = 0
     }
 }
