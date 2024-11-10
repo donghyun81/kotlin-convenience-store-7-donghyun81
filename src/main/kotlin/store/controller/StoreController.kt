@@ -36,8 +36,8 @@ class StoreController(
     private fun createStore(): Store = Store(getProducts(), getPromotion())
 
     private fun getProducts(): List<Product> {
-        val productsResourcePath = "src/main/resources/products.md"
-        val products = File(productsResourcePath).readLines().drop(1).map { product ->
+        val productsResourcePath = PRODUCT_PATH
+        val products = File(productsResourcePath).readLines().drop(ATTRIBUTES_LINE).map { product ->
             val (name, price, quantity, promotion) = product.split(DELIMITER_COMMA)
             Product(name, price.toInt(), quantity.toInt(), promotion.toNullOrValue())
         }.toMutableList()
@@ -47,7 +47,7 @@ class StoreController(
 
     private fun addNonPromotionProducts(products: MutableList<Product>) {
         products.filter { product -> isNonPromotionProducts(product, products.toList()) }
-            .forEach { products.add(it.copy(quantity = 0, promotion = null)) }
+            .forEach { products.add(it.copy(quantity = ZERO, promotion = null)) }
     }
 
     private fun isNonPromotionProducts(product: Product, products: List<Product>): Boolean {
@@ -55,8 +55,8 @@ class StoreController(
     }
 
     private fun getPromotion(): List<Promotion> {
-        val promotionResourcePath = "src/main/resources/promotions.md"
-        return File(promotionResourcePath).readLines().drop(1).map { promotion ->
+        val promotionResourcePath = PROMOTION_PATH
+        return File(promotionResourcePath).readLines().drop(ATTRIBUTES_LINE).map { promotion ->
             val (name, buy, get, startDate, endDate) = promotion.split(DELIMITER_COMMA)
             Promotion(name, buy.toInt(), get.toInt(), startDate, endDate)
         }
@@ -70,12 +70,23 @@ class StoreController(
     }
 
     private fun createRequestProduct(requestedProductInput: String): RequestedProduct {
-        require(requestedProductInput.isNotEmpty()) { ErrorMessage.INVALID_INPUT.getErrorMessage() }
-        require(requestedProductInput.first() == '[' && requestedProductInput.last() == ']') { ErrorMessage.INVALID_INPUT.getErrorMessage() }
-        require(requestedProductInput.split("-").size == 2) { ErrorMessage.INVALID_INPUT.getErrorMessage() }
-        val (name, count) = requestedProductInput.removeSurrounding("[", "]").split("-")
+        validateRequestProductInput(requestedProductInput)
+        val (name, count) = requestedProductInput.removeSurrounding(
+            PURCHASE_PRODUCT_PREFIX.toString(),
+            PURCHASE_PRODUCT_SUFFIX.toString()
+        ).split(DELIMITER_HYPHEN)
         requireNotNull(count.toIntOrNull()) { ErrorMessage.INVALID_INPUT.getErrorMessage() }
         return RequestedProduct(name, count.toInt())
+    }
+
+    private fun validateRequestProductInput(requestedProductInput: String) {
+        require(requestedProductInput.isNotEmpty()) { ErrorMessage.INVALID_INPUT.getErrorMessage() }
+        require(requestedProductInput.first() == PURCHASE_PRODUCT_PREFIX && requestedProductInput.last() == PURCHASE_PRODUCT_SUFFIX) {
+            ErrorMessage.INVALID_INPUT.getErrorMessage()
+        }
+        require(requestedProductInput.split(DELIMITER_HYPHEN).size == PURCHASE_PRODUCT_FORM_SIZE) {
+            ErrorMessage.INVALID_INPUT.getErrorMessage()
+        }
     }
 
     private fun createPurchaseProducts(store: Store, requestedProducts: List<RequestedProduct>): List<PurchaseProduct> {
@@ -98,9 +109,9 @@ class StoreController(
 
     private fun getPromotionProducts(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
         val addProduct = store.calculatePromotionAppliedProduct(requestedProduct)
-        if (addProduct.count > 0) return handleAddPromotionProduct(store, requestedProduct, addProduct)
+        if (addProduct.count > ZERO) return handleAddPromotionProduct(store, requestedProduct, addProduct)
         val nonPromotionProducts = store.calculateNonPromotionalProducts(requestedProduct)
-        if (nonPromotionProducts.count > 0) return handleNonPromotionProducts(
+        if (nonPromotionProducts.count > ZERO) return handleNonPromotionProducts(
             store,
             requestedProduct,
             nonPromotionProducts
@@ -109,27 +120,23 @@ class StoreController(
     }
 
     private fun handleAddPromotionProduct(
-        store: Store,
-        requestedProduct: RequestedProduct,
-        addRequestedProduct: RequestedProduct
+        store: Store, product: RequestedProduct, addProduct: RequestedProduct
     ): PurchaseProduct {
-        val isAddPromotionProduct = retryInput { inputView.confirmPromotionAddition(addRequestedProduct).isYes() }
+        val isAddPromotionProduct = retryInput { inputView.confirmPromotionAddition(addProduct).isYes() }
         if (isAddPromotionProduct) {
-            return store.buyProduct(requestedProduct.copy(count = requestedProduct.count + addRequestedProduct.count))
+            return store.buyProduct(product.copy(count = product.count + addProduct.count))
         }
-        return store.buyProduct(requestedProduct)
+        return store.buyProduct(product)
     }
 
     private fun handleNonPromotionProducts(
-        store: Store,
-        requestedProduct: RequestedProduct,
-        nonPromotionRequestedProduct: RequestedProduct
+        store: Store, product: RequestedProduct, nonPromotionProduct: RequestedProduct
     ): PurchaseProduct {
         val isIncludingNonPromotions =
-            retryInput { inputView.confirmNonPromotionalPurchase(nonPromotionRequestedProduct).isYes() }
-        if (isIncludingNonPromotions) return store.buyProduct(requestedProduct)
+            retryInput { inputView.confirmNonPromotionalPurchase(nonPromotionProduct).isYes() }
+        if (isIncludingNonPromotions) return store.buyProduct(product)
         return store.buyProduct(
-            requestedProduct.copy(count = requestedProduct.count - nonPromotionRequestedProduct.count)
+            product.copy(count = product.count - nonPromotionProduct.count)
         )
     }
 
@@ -137,13 +144,13 @@ class StoreController(
 
 
     private fun String.toNullOrValue(): String? {
-        if (this == "null") return null
+        if (this == NULL_TEXT) return null
         return this
     }
 
     private fun String.isYes(): Boolean {
-        require(this.uppercase() == "Y" || this.uppercase() == "N") { ErrorMessage.INVALID_FORMAT.getErrorMessage() }
-        return this.uppercase() == "Y"
+        require(this.uppercase() == INPUT_YES || this.uppercase() == INPUT_NO) { ErrorMessage.INVALID_FORMAT.getErrorMessage() }
+        return this.uppercase() == INPUT_YES
     }
 
     private fun List<Product>.sortedSameNameByPromotion() =
@@ -151,5 +158,16 @@ class StoreController(
 
     companion object {
         private const val DELIMITER_COMMA = ","
+        private const val DELIMITER_HYPHEN = "-"
+        private const val ZERO = 0
+        private const val ATTRIBUTES_LINE = 1
+        private const val NULL_TEXT = "null"
+        private const val INPUT_YES = "Y"
+        private const val INPUT_NO = "N"
+        private const val PURCHASE_PRODUCT_PREFIX = '['
+        private const val PURCHASE_PRODUCT_SUFFIX = ']'
+        private const val PURCHASE_PRODUCT_FORM_SIZE = 2
+        private const val PRODUCT_PATH = "src/main/resources/products.md"
+        private const val PROMOTION_PATH = "src/main/resources/promotions.md"
     }
 }
