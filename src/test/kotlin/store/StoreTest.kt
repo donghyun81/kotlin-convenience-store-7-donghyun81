@@ -23,9 +23,7 @@ class StoreTest {
             Product("사과", 1000, 10, "null"),
             Product("수박", 2000, 10, "null"),
         )
-        defaultPromotion = listOf(
-            Promotion("MD추천상품", 3, 4, "2024-01-01", "2024-12-31"),
-        )
+        defaultPromotion = listOf(Promotion("MD추천상품", 3, 4, "2024-01-01", "2024-12-31"))
         store = Store(defaultProducts, defaultPromotion)
     }
 

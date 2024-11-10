@@ -11,7 +11,7 @@ class ProductTest {
     private lateinit var defaultProduct: Product
 
     @BeforeEach
-    fun `setUp`() {
+    fun setUp() {
         defaultProduct = Product("사과", 1000, 10, "MD추천 상품")
     }
 
