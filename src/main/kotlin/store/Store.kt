@@ -7,7 +7,6 @@ class Store(
     private val products: List<Product>,
     private val promotions: List<Promotion>
 ) {
-
     fun getProducts() = products.toList()
 
     fun hasProduct(requestedProduct: RequestedProduct): Boolean {
@@ -62,17 +61,6 @@ class Store(
         return requestedProduct.copy(count = requestedProduct.count - reminder)
     }
 
-    private fun getApplyCount(requestedProduct: RequestedProduct): Int {
-        val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
-        val promotion = promotions.find { it.name == product.promotion } ?: return 0
-        val currentDate = DateTimes.now().toLocalDate()
-        if (isPromotion(requestedProduct, currentDate).not()) return 0
-        if (requestedProduct.count > product.getQuantity()) {
-            return product.getQuantity().div(promotion.buy + promotion.get)
-        }
-        return requestedProduct.count.div(promotion.buy + promotion.get)
-    }
-
     fun buyProduct(requestedProduct: RequestedProduct): PurchaseProduct {
         val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
         val promotion = promotions.find { it.name == product.promotion }
@@ -85,6 +73,17 @@ class Store(
             price = product.price,
             promotionCount = applyCount * ((promotion?.buy ?: 0) + (promotion?.get ?: 0))
         )
+    }
+
+    private fun getApplyCount(requestedProduct: RequestedProduct): Int {
+        val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
+        val promotion = promotions.find { it.name == product.promotion } ?: return 0
+        val currentDate = DateTimes.now().toLocalDate()
+        if (isPromotion(requestedProduct, currentDate).not()) return 0
+        if (requestedProduct.count > product.getQuantity()) {
+            return product.getQuantity().div(promotion.buy + promotion.get)
+        }
+        return requestedProduct.count.div(promotion.buy + promotion.get)
     }
 
     private fun updateProductsQuantity(requestedProduct: RequestedProduct) {
