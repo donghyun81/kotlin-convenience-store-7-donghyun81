@@ -46,7 +46,7 @@ class OutputView {
     private fun printPromotionProducts(purchaseProducts: List<PurchaseProduct>) {
         println(OutputMessage.APPLY_MESSAGE_START.message)
         purchaseProducts.forEach { product ->
-            println("${product.name.receiptFormat(RECEIPT_START_BLANK_COUNT)}${product.apply}")
+            if (product.apply > 0) println("${product.name.receiptFormat(RECEIPT_START_BLANK_COUNT)}${product.apply}")
         }
     }
 
@@ -67,8 +67,8 @@ class OutputView {
     }
 
     private fun printDiscountResult(promotionDiscount: Int, membershipDiscount: Int) {
-        println("${TOTAL_PROMOTION_DISCOUNT.receiptFormat(DISCOUNT_BLANK_COUNT)}$MINUS$promotionDiscount")
-        println("${MEMBERSHIP_DISCOUNT.receiptFormat(DISCOUNT_BLANK_COUNT)}$MINUS$membershipDiscount")
+        println("${TOTAL_PROMOTION_DISCOUNT.receiptFormat(DISCOUNT_BLANK_COUNT)}$MINUS${promotionDiscount.toWonFormat()}")
+        println("${MEMBERSHIP_DISCOUNT.receiptFormat(DISCOUNT_BLANK_COUNT)}$MINUS${membershipDiscount.toWonFormat()}")
     }
 
     private fun printPayment(payment: Int) {
