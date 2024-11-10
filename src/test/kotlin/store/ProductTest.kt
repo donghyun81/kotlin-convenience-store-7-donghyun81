@@ -17,18 +17,6 @@ class ProductTest {
 
     @ParameterizedTest
     @CsvSource(
-        "7, 17",
-        "10, 20",
-        "80, 90",
-    )
-    fun `제품의 수량을 증가시키는 기능 테스트`(deductCount: Int, expected: Int) {
-        defaultProduct.increaseCount(deductCount)
-        val result = defaultProduct.getQuantity()
-        assertEquals(expected, result)
-    }
-
-    @ParameterizedTest
-    @CsvSource(
         "4, 6",
         "10, 0",
         "0, 10",

@@ -6,10 +6,6 @@ data class Product(
     private var quantity: Int,
     val promotion: String?
 ) {
-    fun increaseCount(presentationCount: Int) {
-        quantity += presentationCount
-    }
-
     fun deductQuantity(buyCount: Int) {
         quantity = (quantity - buyCount).coerceAtLeast(0)
     }
