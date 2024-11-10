@@ -18,7 +18,9 @@ class StoreController(
         val store = createStore()
         retryPurchase {
             purchaseProducts(store)
-            inputView.readRetryBuy().isYes()
+            retryInput {
+                inputView.readRetryBuy().isYes()
+            }
         }
     }
 
@@ -110,7 +112,7 @@ class StoreController(
         requestedProduct: RequestedProduct,
         addRequestedProduct: RequestedProduct
     ): PurchaseProduct {
-        val isAddPromotionProduct = inputView.readAddPromotionProduct(addRequestedProduct).isYes()
+        val isAddPromotionProduct = retryInput { inputView.readAddPromotionProduct(addRequestedProduct).isYes() }
         if (isAddPromotionProduct) {
             return store.buyProduct(requestedProduct.copy(count = requestedProduct.count + addRequestedProduct.count))
         }
@@ -122,14 +124,16 @@ class StoreController(
         requestedProduct: RequestedProduct,
         nonPromotionRequestedProduct: RequestedProduct
     ): PurchaseProduct {
-        val isIncludingNonPromotions = inputView.readHasNotPromotionProduct(nonPromotionRequestedProduct).isYes()
+        val isIncludingNonPromotions =
+            retryInput { inputView.readHasNotPromotionProduct(nonPromotionRequestedProduct).isYes() }
         if (isIncludingNonPromotions) return store.buyProduct(requestedProduct)
         return store.buyProduct(
             requestedProduct.copy(count = requestedProduct.count - nonPromotionRequestedProduct.count)
         )
     }
 
-    private fun isMemberShip() = inputView.readIsMembershipDiscount().isYes()
+    private fun isMemberShip() = retryInput { inputView.readIsMembershipDiscount().isYes() }
+
 
     private fun String.toNullOrValue(): String? {
         if (this == "null") return null
