@@ -11,15 +11,19 @@ class StoreController(
     fun run() {
         outputView.printStart()
         val store = createStore()
-        retryBuy {
-            outputView.printStoreProducts(store.getProducts())
-            val purchaseProducts = retryInput {
-                val requestedProducts = createRequestedProducts()
-                createPurchaseProducts(store, requestedProducts)
-            }
-            outputView.printReceipt(purchaseProducts, isMemberShip())
-            inputView.readRetryBuy() == "Y"
+        retryPurchase {
+            purchaseProducts(store)
+            inputView.readRetryBuy().isYes()
         }
+    }
+
+    private fun purchaseProducts(store: Store) {
+        outputView.printStoreProducts(store.getProducts())
+        val purchaseProducts = retryInput {
+            val requestedProducts = createRequestedProducts()
+            createPurchaseProducts(store, requestedProducts)
+        }
+        outputView.printReceipt(purchaseProducts, isMemberShip())
     }
 
     private fun createStore(): Store = Store(getProducts(), getPromotion())
@@ -31,7 +35,7 @@ class StoreController(
             Product(name, price.toInt(), quantity.toInt(), promotion.toNullOrValue())
         }.toMutableList()
         addNonPromotionProducts(products)
-        return products.groupBy { it.name }.flatMap { (_, group) -> group.sortedByDescending { it.promotion } }.toList()
+        return products.sortedSameNameByPromotion()
     }
 
     private fun addNonPromotionProducts(products: MutableList<Product>) {
@@ -46,8 +50,8 @@ class StoreController(
     private fun getPromotion(): List<Promotion> {
         val promotionResourcePath = "src/main/resources/promotions.md"
         return File(promotionResourcePath).readLines().drop(1).map { promotion ->
-            val (name, buy, get, start_date, end_date) = promotion.split(",")
-            Promotion(name, buy.toInt(), get.toInt(), start_date, end_date)
+            val (name, buy, get, startDate, endDate) = promotion.split(",")
+            Promotion(name, buy.toInt(), get.toInt(), startDate, endDate)
         }
     }
 
@@ -60,7 +64,9 @@ class StoreController(
 
     private fun createRequestProduct(requestedProductInput: String): RequestedProduct {
         require(requestedProductInput.first() == '[' && requestedProductInput.last() == ']') { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
+        require(requestedProductInput.split("-").size == 2) { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
         val (name, count) = requestedProductInput.removeSurrounding("[", "]").split("-")
+        requireNotNull(count.toIntOrNull()) { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
         return RequestedProduct(name, count.toInt())
     }
 
@@ -68,13 +74,12 @@ class StoreController(
         val purchaseProducts = mutableListOf<PurchaseProduct>()
         requestedProducts.forEach { requestedProduct ->
             require(store.hasProduct(requestedProduct)) { "[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요." }
-            purchaseProducts.add(buyRequestProducts(store, requestedProduct))
+            purchaseProducts.add(buyRequestProduct(store, requestedProduct))
         }
         return purchaseProducts.toList()
     }
 
-    private fun buyRequestProducts(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
-        store.hasProduct(requestedProduct)
+    private fun buyRequestProduct(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
         val currentDate = DateTimes.now().toLocalDate()
         if (store.isPromotion(requestedProduct, currentDate)) {
             val promotionResult = getPromotionProducts(store, requestedProduct)
@@ -86,7 +91,6 @@ class StoreController(
     private fun getPromotionProducts(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
         val addProduct = store.calculatePromotionAppliedProduct(requestedProduct)
         if (addProduct.count > 0) return handleAddPromotionProduct(store, requestedProduct, addProduct)
-
         val nonPromotionProducts = store.calculateNonPromotionalProducts(requestedProduct)
         if (nonPromotionProducts.count > 0) return handleNonPromotionProducts(
             store,
@@ -99,12 +103,11 @@ class StoreController(
     private fun handleAddPromotionProduct(
         store: Store,
         requestedProduct: RequestedProduct,
-        addProduct: RequestedProduct
+        addRequestedProduct: RequestedProduct
     ): PurchaseProduct {
-        val yesOrNo = inputView.readAddPromotionProduct(addProduct)
-        if (yesOrNo == "Y") {
-            val totalCount = requestedProduct.count + addProduct.count
-            return store.buyProduct(requestedProduct.copy(count = totalCount))
+        val isAddPromotionProduct = inputView.readAddPromotionProduct(addRequestedProduct).isYes()
+        if (isAddPromotionProduct) {
+            return store.buyProduct(requestedProduct.copy(count = requestedProduct.count + addRequestedProduct.count))
         }
         return store.buyProduct(requestedProduct)
     }
@@ -112,19 +115,27 @@ class StoreController(
     private fun handleNonPromotionProducts(
         store: Store,
         requestedProduct: RequestedProduct,
-        nonPromotionProducts: RequestedProduct
+        nonPromotionRequestedProduct: RequestedProduct
     ): PurchaseProduct {
-        val yesOrNo = inputView.readHasNotPromotionProduct(nonPromotionProducts)
-        if (yesOrNo == "Y") return store.buyProduct(requestedProduct)
+        val isIncludingNonPromotions = inputView.readHasNotPromotionProduct(nonPromotionRequestedProduct).isYes()
+        if (isIncludingNonPromotions) return store.buyProduct(requestedProduct)
         return store.buyProduct(
-            requestedProduct.copy(count = requestedProduct.count - nonPromotionProducts.count)
+            requestedProduct.copy(count = requestedProduct.count - nonPromotionRequestedProduct.count)
         )
     }
 
-    private fun isMemberShip() = inputView.readIsMembershipDiscount() == "Y"
+    private fun isMemberShip() = inputView.readIsMembershipDiscount().isYes()
 
     private fun String.toNullOrValue(): String? {
         if (this == "null") return null
         return this
     }
+
+    private fun String.isYes(): Boolean {
+        require(this.uppercase() == "Y" || this.uppercase() == "N") { "[ERROR] 출력 형식이 맞지 않습니다 Y 또는 N만 입력해주세요" }
+        return this.uppercase() == "Y"
+    }
+
+    private fun List<Product>.sortedSameNameByPromotion() =
+        groupBy { it.name }.flatMap { (_, group) -> group.sortedByDescending { it.promotion } }.toList()
 }
