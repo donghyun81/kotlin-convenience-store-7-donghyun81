@@ -7,70 +7,116 @@ import java.text.DecimalFormat
 class OutputView {
 
     fun printStart() {
-        println("안녕하세요. W편의점입니다.")
+        println(OutputMessage.START_MESSAGE.message)
     }
 
     fun printStoreProducts(products: List<Product>) {
-        println("현재 보유하고 있는 상품입니다.\n")
+        println(OutputMessage.CURRENT_PRODUCTS.message)
         products.forEach { product ->
-            println(
-                "- ${product.name} ${product.price.toWonFormat()}원 ${
-                    product.getQuantity().toCountFormat()
-                } ${product.promotion ?: ""}"
-            )
+            printStoreProduct(product)
         }
         println()
     }
 
-    private fun Int.toCountFormat(): String {
-        if (this == 0) return "재고 없음"
-        return toString() + "개"
+    private fun printStoreProduct(product: Product) {
+        val name = product.name
+        val price = product.price.toWonFormat() + WON
+        val quantity = product.getQuantity().toCountFormat()
+        val promotion = product.promotion ?: EMPTY
+        println("$HYPHEN $name $price $quantity $promotion")
     }
 
     fun printReceipt(purchaseProducts: List<PurchaseProduct>, isMemberShip: Boolean) {
         printPurchaseProducts(purchaseProducts)
         printPromotionProducts(purchaseProducts)
-        printTotalReceipt(purchaseProducts, isMemberShip)
+        printPurchaseResult(purchaseProducts, isMemberShip)
     }
 
     private fun printPurchaseProducts(purchaseProduct: List<PurchaseProduct>) {
-        println("==============W 편의점================")
-        println("상품명		수량	  금액")
+        println(OutputMessage.RECEIPT_MESSAGE_START.message)
+        println(OutputMessage.PURCHASE_ATTRIBUTES.message)
         purchaseProduct.forEach { product ->
-            println(
-                "${product.name}\t\t${
-                    product.count
-                } \t${(product.count * product.price).toWonFormat()}"
-            )
+            val name = product.name.receiptFormat(RECEIPT_START_BLANK_COUNT)
+            val count = product.count.toString().receiptFormat(QUANTITY_BLANK_COUNT)
+            val price = product.count * product.price
+            println("$name${count}${price.toWonFormat()}")
         }
     }
 
     private fun printPromotionProducts(purchaseProducts: List<PurchaseProduct>) {
-        println("====== === === = 증    정 === === === === ===")
+        println(OutputMessage.APPLY_MESSAGE_START.message)
         purchaseProducts.forEach { product ->
-            println("${product.name}        ${product.apply}")
+            println("${product.name.receiptFormat(RECEIPT_START_BLANK_COUNT)}${product.apply}")
         }
     }
 
-    private fun printTotalReceipt(purchaseProducts: List<PurchaseProduct>, isMemberShip: Boolean) {
+    private fun printPurchaseResult(purchaseProducts: List<PurchaseProduct>, isMemberShip: Boolean) {
         val totalPrice = purchaseProducts.sumOf { it.count * it.price }
         val promotionDiscount = purchaseProducts.sumOf { it.apply * it.price }
-        val promotionPrice = purchaseProducts.map { it.promotionCount * it.price }.sumOf { it }
-        val membershipDiscount = getMembershipDiscount(isMemberShip, totalPrice, promotionPrice)
-        println("====== === === === === === === === === === ===")
-        println("총구매액        ${purchaseProducts.sumOf { it.count }}    ${totalPrice.toWonFormat()}")
-        println("행사 할인 \t\t\t -$promotionDiscount")
-        println("멤버십할인\t\t\t-$membershipDiscount")
-        println("내실돈\t\t\t ${(totalPrice - promotionDiscount - membershipDiscount).toWonFormat()}")
+        val membershipDiscount = getMembershipDiscount(isMemberShip, totalPrice, purchaseProducts)
+        println(OutputMessage.TOTAL_START.message)
+        printTotalAmount(purchaseProducts, totalPrice)
+        printDiscountResult(promotionDiscount, membershipDiscount)
+        printPayment(totalPrice - promotionDiscount - membershipDiscount)
     }
 
-    private fun getMembershipDiscount(isMemberShip: Boolean, totalPrice: Int, promotionPrice: Int): Int {
-        if (isMemberShip) return (totalPrice - promotionPrice).times(0.3).toInt().coerceAtMost(8000)
-        return 0
+    private fun printTotalAmount(purchaseProducts: List<PurchaseProduct>, totalPrice: Int) {
+        val purchaseTotalProductCount =
+            purchaseProducts.sumOf { it.count }.toString().receiptFormat(QUANTITY_BLANK_COUNT)
+        println("${TOTAL_PURCHASE_AMOUNT.receiptFormat(RECEIPT_START_BLANK_COUNT)}$purchaseTotalProductCount${totalPrice.toWonFormat()}")
     }
+
+    private fun printDiscountResult(promotionDiscount: Int, membershipDiscount: Int) {
+        println("${TOTAL_PROMOTION_DISCOUNT.receiptFormat(DISCOUNT_BLANK_COUNT)}$MINUS$promotionDiscount")
+        println("${MEMBERSHIP_DISCOUNT.receiptFormat(DISCOUNT_BLANK_COUNT)}$MINUS$membershipDiscount")
+    }
+
+    private fun printPayment(payment: Int) {
+        println("${TOTAL_PAYMENT.receiptFormat(PAYMENT_BLANK_COUNT)}${payment.toWonFormat()}")
+    }
+
+    private fun getMembershipDiscount(
+        isMemberShip: Boolean,
+        totalPrice: Int,
+        purchaseProducts: List<PurchaseProduct>
+    ): Int {
+        val promotionPrice = purchaseProducts.map { it.promotionCount * it.price }.sumOf { it }
+        if (isMemberShip) return (totalPrice - promotionPrice).times(MEMBERSHIP_PERCENT).toInt()
+            .coerceAtMost(MAX_MEMBERSHIP_AMOUNT)
+        return ZERO
+    }
+
+    private fun String.receiptFormat(blankCount: Int) = this + BLANK.repeat(blankCount - this.length)
 
     private fun Int.toWonFormat(): String {
-        val formatter = DecimalFormat("#,###")
+        val formatter = DecimalFormat(WON_FORM)
         return formatter.format(this)
+    }
+
+    private fun Int.toCountFormat(): String {
+        if (this == ZERO) return NON_QUANTITY
+        return toString() + COUNT
+    }
+
+    companion object {
+        private const val MEMBERSHIP_PERCENT = 0.3
+        private const val MAX_MEMBERSHIP_AMOUNT = 8000
+        private const val NON_QUANTITY = "재고 없음"
+        private const val COUNT = "개"
+        private const val WON = "원"
+        private const val EMPTY = ""
+        private const val BLANK = " "
+        private const val WON_FORM = "#,###"
+        private const val HYPHEN = "-"
+        private const val MINUS = "-"
+        private const val ZERO = 0
+        private const val TOTAL_PURCHASE_AMOUNT = "총구매액"
+        private const val TOTAL_PROMOTION_DISCOUNT = "행사 할인"
+        private const val MEMBERSHIP_DISCOUNT = "멤버십할인"
+        private const val TOTAL_PAYMENT = "내실돈"
+        private const val DISCOUNT_BLANK_COUNT = 22
+        private const val PAYMENT_BLANK_COUNT = 23
+        private const val RECEIPT_START_BLANK_COUNT = 16
+        private const val QUANTITY_BLANK_COUNT = 7
     }
 }
