@@ -79,7 +79,7 @@ class StoreTest {
 
     @Test
     fun `구매할때 추가로 증정할 프로모션을 반환 하는 기능 테스트`() {
-        val result = store.getApplyPromotionProduct(RequestedProduct("사과", 5))
+        val result = store.calculatePromotionAppliedProduct(RequestedProduct("사과", 5))
         val expected = RequestedProduct("사과", 2)
         assertEquals(expected, result)
     }
@@ -92,7 +92,7 @@ class StoreTest {
         "1000,993"
     )
     fun `프로모션이 들어가지 않는 제품을 반환 하는 기능 테스트`(requestCount: Int, expectedCount: Int) {
-        val result = store.getNonPromotionalProducts(RequestedProduct("사과", requestCount))
+        val result = store.calculateNonPromotionalProducts(RequestedProduct("사과", requestCount))
         val expected = RequestedProduct("사과", expectedCount)
         assertEquals(expected, result)
     }
@@ -103,7 +103,7 @@ class StoreTest {
         "17, 7",
     )
     fun `프로모션이 들어간 제품을 반환 하는 기능 테스트`(requestCount: Int, expectedCount: Int) {
-        val result = store.getPromotionalProducts(RequestedProduct("사과", requestCount))
+        val result = store.calculatePromotionalProducts(RequestedProduct("사과", requestCount))
         val expected = RequestedProduct("사과", expectedCount)
         assertEquals(expected, result)
     }

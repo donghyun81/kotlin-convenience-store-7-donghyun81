@@ -84,10 +84,10 @@ class StoreController(
     }
 
     private fun getPromotionProducts(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
-        val addProduct = store.getApplyPromotionProduct(requestedProduct)
+        val addProduct = store.calculatePromotionAppliedProduct(requestedProduct)
         if (addProduct.count > 0) return handleAddPromotionProduct(store, requestedProduct, addProduct)
 
-        val nonPromotionProducts = store.getNonPromotionalProducts(requestedProduct)
+        val nonPromotionProducts = store.calculateNonPromotionalProducts(requestedProduct)
         if (nonPromotionProducts.count > 0) return handleNonPromotionProducts(
             store,
             requestedProduct,
