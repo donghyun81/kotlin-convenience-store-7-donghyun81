@@ -1,5 +1,7 @@
-package store
+package store.view
 
+import store.model.PurchaseProduct
+import store.model.Product
 import java.text.DecimalFormat
 
 class OutputView {

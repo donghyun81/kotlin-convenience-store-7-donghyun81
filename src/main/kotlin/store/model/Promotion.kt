@@ -1,4 +1,4 @@
-package store
+package store.model
 
 data class Promotion(
     val name: String,
