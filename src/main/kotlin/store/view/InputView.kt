@@ -4,28 +4,35 @@ import camp.nextstep.edu.missionutils.Console
 import store.model.RequestedProduct
 
 class InputView {
-    fun readBuyItem(): String {
-        println("구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])")
+    fun readPurchaseInput(): String {
+        println(InputMessage.PURCHASE_PRODUCTS.message)
         return Console.readLine()
     }
 
-    fun readHasNotPromotionProduct(requestedProduct: RequestedProduct): String {
-        println("현재 ${requestedProduct.name} ${requestedProduct.count}개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)")
+    fun confirmNonPromotionalPurchase(requestedProduct: RequestedProduct): String {
+        val message = NON_PROMOTIONAL_PURCHASE_MESSAGE_FORM.format(requestedProduct.name, requestedProduct.count)
+        println(message)
         return Console.readLine()
     }
 
-    fun readAddPromotionProduct(requestedProduct: RequestedProduct): String {
-        println("현재 ${requestedProduct.name}은(는) ${requestedProduct.count}개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)\n")
+    fun confirmPromotionAddition(requestedProduct: RequestedProduct): String {
+        val message = PROMOTION_ADDITION.format(requestedProduct.name, requestedProduct.count)
+        println(message)
         return Console.readLine()
     }
 
-    fun readIsMembershipDiscount(): String {
-        println("멤버십 할인을 받으시겠습니까? (Y/N)")
+    fun confirmMembershipDiscount(): String {
+        println(InputMessage.MEMBERSHIP_DISCOUNT.message)
         return Console.readLine()
     }
 
-    fun readRetryBuy(): String {
-        println("감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)")
+    fun confirmAdditionalPurchase(): String {
+        println(InputMessage.ADDITIONAL_PURCHASE.message)
         return Console.readLine()
+    }
+
+    companion object {
+        private const val NON_PROMOTIONAL_PURCHASE_MESSAGE_FORM = "현재 %s %d개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)"
+        private const val PROMOTION_ADDITION = "현재 %s은(는) %d개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)"
     }
 }

@@ -19,7 +19,7 @@ class StoreController(
         retryPurchase {
             purchaseProducts(store)
             retryInput {
-                inputView.readRetryBuy().isYes()
+                inputView.confirmAdditionalPurchase().isYes()
             }
         }
     }
@@ -63,7 +63,7 @@ class StoreController(
     }
 
     private fun createRequestedProducts(): List<RequestedProduct> {
-        val requestedProducts = inputView.readBuyItem().split(",").map { requestedProductInput ->
+        val requestedProducts = inputView.readPurchaseInput().split(",").map { requestedProductInput ->
             createRequestProduct(requestedProductInput)
         }
         return requestedProducts
@@ -113,7 +113,7 @@ class StoreController(
         requestedProduct: RequestedProduct,
         addRequestedProduct: RequestedProduct
     ): PurchaseProduct {
-        val isAddPromotionProduct = retryInput { inputView.readAddPromotionProduct(addRequestedProduct).isYes() }
+        val isAddPromotionProduct = retryInput { inputView.confirmPromotionAddition(addRequestedProduct).isYes() }
         if (isAddPromotionProduct) {
             return store.buyProduct(requestedProduct.copy(count = requestedProduct.count + addRequestedProduct.count))
         }
@@ -126,14 +126,14 @@ class StoreController(
         nonPromotionRequestedProduct: RequestedProduct
     ): PurchaseProduct {
         val isIncludingNonPromotions =
-            retryInput { inputView.readHasNotPromotionProduct(nonPromotionRequestedProduct).isYes() }
+            retryInput { inputView.confirmNonPromotionalPurchase(nonPromotionRequestedProduct).isYes() }
         if (isIncludingNonPromotions) return store.buyProduct(requestedProduct)
         return store.buyProduct(
             requestedProduct.copy(count = requestedProduct.count - nonPromotionRequestedProduct.count)
         )
     }
 
-    private fun isMemberShip() = retryInput { inputView.readIsMembershipDiscount().isYes() }
+    private fun isMemberShip() = retryInput { inputView.confirmMembershipDiscount().isYes() }
 
 
     private fun String.toNullOrValue(): String? {
