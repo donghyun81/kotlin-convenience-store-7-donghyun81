@@ -38,7 +38,7 @@ class StoreController(
     private fun getProducts(): List<Product> {
         val productsResourcePath = "src/main/resources/products.md"
         val products = File(productsResourcePath).readLines().drop(1).map { product ->
-            val (name, price, quantity, promotion) = product.split(",")
+            val (name, price, quantity, promotion) = product.split(DELIMITER_COMMA)
             Product(name, price.toInt(), quantity.toInt(), promotion.toNullOrValue())
         }.toMutableList()
         addNonPromotionProducts(products)
@@ -57,31 +57,31 @@ class StoreController(
     private fun getPromotion(): List<Promotion> {
         val promotionResourcePath = "src/main/resources/promotions.md"
         return File(promotionResourcePath).readLines().drop(1).map { promotion ->
-            val (name, buy, get, startDate, endDate) = promotion.split(",")
+            val (name, buy, get, startDate, endDate) = promotion.split(DELIMITER_COMMA)
             Promotion(name, buy.toInt(), get.toInt(), startDate, endDate)
         }
     }
 
     private fun createRequestedProducts(): List<RequestedProduct> {
-        val requestedProducts = inputView.readPurchaseInput().split(",").map { requestedProductInput ->
+        val requestedProducts = inputView.readPurchaseInput().split(DELIMITER_COMMA).map { requestedProductInput ->
             createRequestProduct(requestedProductInput)
         }
         return requestedProducts
     }
 
     private fun createRequestProduct(requestedProductInput: String): RequestedProduct {
-        require(requestedProductInput.isNotEmpty()) { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
-        require(requestedProductInput.first() == '[' && requestedProductInput.last() == ']') { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
-        require(requestedProductInput.split("-").size == 2) { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
+        require(requestedProductInput.isNotEmpty()) { ErrorMessage.INVALID_INPUT.getErrorMessage() }
+        require(requestedProductInput.first() == '[' && requestedProductInput.last() == ']') { ErrorMessage.INVALID_INPUT.getErrorMessage() }
+        require(requestedProductInput.split("-").size == 2) { ErrorMessage.INVALID_INPUT.getErrorMessage() }
         val (name, count) = requestedProductInput.removeSurrounding("[", "]").split("-")
-        requireNotNull(count.toIntOrNull()) { "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요." }
+        requireNotNull(count.toIntOrNull()) { ErrorMessage.INVALID_INPUT.getErrorMessage() }
         return RequestedProduct(name, count.toInt())
     }
 
     private fun createPurchaseProducts(store: Store, requestedProducts: List<RequestedProduct>): List<PurchaseProduct> {
         val purchaseProducts = mutableListOf<PurchaseProduct>()
         requestedProducts.forEach { requestedProduct ->
-            require(store.hasProduct(requestedProduct)) { "[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요." }
+            require(store.hasProduct(requestedProduct)) { ErrorMessage.STOCK_EXCEEDED.getErrorMessage() }
             purchaseProducts.add(buyRequestProduct(store, requestedProduct))
         }
         return purchaseProducts.toList()
@@ -142,10 +142,14 @@ class StoreController(
     }
 
     private fun String.isYes(): Boolean {
-        require(this.uppercase() == "Y" || this.uppercase() == "N") { "[ERROR] 출력 형식이 맞지 않습니다 Y 또는 N만 입력해주세요" }
+        require(this.uppercase() == "Y" || this.uppercase() == "N") { ErrorMessage.INVALID_FORMAT.getErrorMessage() }
         return this.uppercase() == "Y"
     }
 
     private fun List<Product>.sortedSameNameByPromotion() =
         groupBy { it.name }.flatMap { (_, group) -> group.sortedByDescending { it.promotion } }.toList()
+
+    companion object {
+        private const val DELIMITER_COMMA = ","
+    }
 }

@@ -1,6 +1,7 @@
 package store.model
 
 import camp.nextstep.edu.missionutils.DateTimes
+import store.controller.ErrorMessage
 import java.time.LocalDate
 
 class Store(
@@ -12,7 +13,7 @@ class Store(
     fun hasProduct(requestedProduct: RequestedProduct): Boolean {
         var remainingRequestCount = requestedProduct.count
         products.find { it.name == requestedProduct.name }
-            ?: throw IllegalArgumentException("[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요.")
+            ?: throw IllegalArgumentException(ErrorMessage.NON_EXISTENT_PRODUCT.getErrorMessage())
         products.map { product ->
             if (product.name == requestedProduct.name) remainingRequestCount -= product.getQuantity()
         }
