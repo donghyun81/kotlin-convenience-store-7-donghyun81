@@ -31,12 +31,14 @@ class Store(
         return currentDate in startDate..endDate
     }
 
-    fun applyPromotionProduct(requestedProduct: RequestedProduct): RequestedProduct {
+    fun getApplyPromotionProduct(requestedProduct: RequestedProduct): RequestedProduct {
         val product = products.find { it.name == requestedProduct.name } ?: throw IllegalArgumentException()
         val promotion = promotions.find { it.name == product.promotion } ?: throw IllegalArgumentException()
-        if (product.getQuantity() < requestedProduct.count) return requestedProduct.copy(count = 0)
-        val reminder = requestedProduct.count.rem(promotion.buy + promotion.get)
-        val requestCount = if (reminder == promotion.buy) promotion.get else 0
+        if (requestedProduct.count >= product.getQuantity()) return requestedProduct.copy(count = 0)
+        val totalPromotionCount = promotion.buy + promotion.get
+        val reminder = requestedProduct.count.rem(totalPromotionCount)
+        if (reminder < promotion.buy) return requestedProduct.copy(count = 0)
+        val requestCount = totalPromotionCount - reminder
         return requestedProduct.copy(count = requestCount)
     }
 

@@ -1,6 +1,5 @@
 package store
 
-import camp.nextstep.edu.missionutils.DateTimes
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -80,8 +79,8 @@ class StoreTest {
 
     @Test
     fun `구매할때 추가로 증정할 프로모션을 반환 하는 기능 테스트`() {
-        val result = store.applyPromotionProduct(RequestedProduct("사과", 6))
-        val expected = RequestedProduct("사과", 4)
+        val result = store.getApplyPromotionProduct(RequestedProduct("사과", 5))
+        val expected = RequestedProduct("사과", 2)
         assertEquals(expected, result)
     }
 
