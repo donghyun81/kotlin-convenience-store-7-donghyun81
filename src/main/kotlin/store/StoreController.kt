@@ -11,12 +11,15 @@ class StoreController(
     fun run() {
         outputView.printStart()
         val store = createStore()
-        outputView.printStoreProducts(store.getProducts())
-        val purchaseProducts = retryInput {
-            val requestedProducts = createRequestedProducts()
-            createPurchaseProducts(store, requestedProducts)
+        retryBuy {
+            outputView.printStoreProducts(store.getProducts())
+            val purchaseProducts = retryInput {
+                val requestedProducts = createRequestedProducts()
+                createPurchaseProducts(store, requestedProducts)
+            }
+            outputView.printReceipt(purchaseProducts, isMemberShip())
+            inputView.readRetryBuy() == "Y"
         }
-        outputView.printReceipt(purchaseProducts, isMemberShip())
     }
 
     private fun createStore(): Store = Store(getProducts(), getPromotion())

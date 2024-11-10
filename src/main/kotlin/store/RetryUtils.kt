@@ -9,3 +9,9 @@ fun <T> retryInput(inputAction: () -> T): T {
         }
     }
 }
+
+fun retryBuy(buy: () -> Boolean) {
+    while (true) {
+        if (!buy()) return
+    }
+}
