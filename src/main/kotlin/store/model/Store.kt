@@ -1,7 +1,6 @@
 package store.model
 
 import camp.nextstep.edu.missionutils.DateTimes
-import store.common.enum.ErrorMessage
 import java.time.LocalDate
 
 class Store(
@@ -49,17 +48,6 @@ class Store(
             return requestedProduct.copy(count = requestedProduct.count + reminder - product.getQuantity())
         }
         return requestedProduct.copy(count = ZERO)
-    }
-
-    fun calculatePromotionalProducts(requestedProduct: RequestedProduct): RequestedProduct {
-        val product = products.find { it.name == requestedProduct.name } ?: return requestedProduct
-        val promotion = promotions.find { it.name == product.promotion } ?: return requestedProduct
-        if (requestedProduct.count > product.getQuantity()) {
-            val reminder = product.getQuantity().rem(promotion.buy + promotion.get)
-            return requestedProduct.copy(count = product.getQuantity() - reminder)
-        }
-        val reminder = requestedProduct.count.rem(promotion.buy + promotion.get)
-        return requestedProduct.copy(count = requestedProduct.count - reminder)
     }
 
     fun buyProduct(requestedProduct: RequestedProduct): PurchaseProduct {

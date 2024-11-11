@@ -99,17 +99,6 @@ class StoreTest {
         assertEquals(expected, result)
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "8, 7",
-        "17, 7",
-    )
-    fun `프로모션이 들어간 제품을 반환 하는 기능 테스트`(requestCount: Int, expectedCount: Int) {
-        val result = store.calculatePromotionalProducts(RequestedProduct("사과", requestCount))
-        val expected = RequestedProduct("사과", expectedCount)
-        assertEquals(expected, result)
-    }
-
     @Test
     fun `고객이 상품을 구매할 때마다, 결제된 수량만큼 해당 상품의 재고에서 차감하고 최신 상태를 반환하는 테스트`() {
         store.buyProduct(RequestedProduct("사과", 14))
