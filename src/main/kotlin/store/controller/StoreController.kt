@@ -21,7 +21,7 @@ class StoreController(
         retryPurchase {
             purchaseProducts(store)
             retryInput {
-                inputView.confirmAdditionalPurchase().isYes()
+                inputView.confirmAdditionalPurchase().isAccept()
             }
         }
     }
@@ -104,46 +104,40 @@ class StoreController(
     private fun buyRequestProduct(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
         val currentDate = DateTimes.now().toLocalDate()
         if (store.isPromotion(requestedProduct, currentDate)) {
-            val promotionResult = getPromotionProducts(store, requestedProduct)
+            val promotionResult = getPromotionProduct(store, requestedProduct)
             return promotionResult
         }
         return store.buyProduct(requestedProduct)
     }
 
-    private fun getPromotionProducts(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
+    private fun getPromotionProduct(store: Store, requestedProduct: RequestedProduct): PurchaseProduct {
         val addProduct = store.calculatePromotionAppliedProduct(requestedProduct)
         if (addProduct.count > ZERO) return handleAddPromotionProduct(store, requestedProduct, addProduct)
         val nonPromotionProducts = store.calculateNonPromotionalProducts(requestedProduct)
-        if (nonPromotionProducts.count > ZERO) return handleNonPromotionProducts(
-            store,
-            requestedProduct,
-            nonPromotionProducts
-        )
-        return store.buyProduct(requestedProduct)
+        return handleNonPromotionProduct(store, requestedProduct, nonPromotionProducts)
     }
 
     private fun handleAddPromotionProduct(
         store: Store, product: RequestedProduct, addProduct: RequestedProduct
     ): PurchaseProduct {
-        val isAddPromotionProduct = retryInput { inputView.confirmPromotionAddition(addProduct).isYes() }
+        val isAddPromotionProduct = retryInput { inputView.confirmPromotionAddition(addProduct).isAccept() }
         if (isAddPromotionProduct) {
             return store.buyProduct(product.copy(count = product.count + addProduct.count))
         }
         return store.buyProduct(product)
     }
 
-    private fun handleNonPromotionProducts(
+    private fun handleNonPromotionProduct(
         store: Store, product: RequestedProduct, nonPromotionProduct: RequestedProduct
     ): PurchaseProduct {
+        if (nonPromotionProduct.count > ZERO) return store.buyProduct(product)
         val isIncludingNonPromotions =
-            retryInput { inputView.confirmNonPromotionalPurchase(nonPromotionProduct).isYes() }
+            retryInput { inputView.confirmNonPromotionalPurchase(nonPromotionProduct).isAccept() }
         if (isIncludingNonPromotions) return store.buyProduct(product)
-        return store.buyProduct(
-            product.copy(count = product.count - nonPromotionProduct.count)
-        )
+        return store.buyProduct(product.copy(count = product.count - nonPromotionProduct.count))
     }
 
-    private fun isMemberShip() = retryInput { inputView.confirmMembershipDiscount().isYes() }
+    private fun isMemberShip() = retryInput { inputView.confirmMembershipDiscount().isAccept() }
 
 
     private fun String.toNullOrValue(): String? {
@@ -151,8 +145,8 @@ class StoreController(
         return this
     }
 
-    private fun String.isYes(): Boolean {
-        require(this.uppercase() == INPUT_YES || this.uppercase() == INPUT_NO) { ErrorMessage.INVALID_FORMAT.getErrorMessage() }
+    private fun String.isAccept(): Boolean {
+        require(this == INPUT_YES || this.uppercase() == INPUT_NO) { ErrorMessage.INVALID_FORMAT.getErrorMessage() }
         return this.uppercase() == INPUT_YES
     }
 
