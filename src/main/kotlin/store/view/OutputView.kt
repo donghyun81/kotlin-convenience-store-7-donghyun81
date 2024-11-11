@@ -46,6 +46,7 @@ class OutputView {
     }
 
     private fun printPromotionProducts(purchaseProducts: List<PurchaseProduct>) {
+        if (purchaseProducts.sumOf { it.apply } <= ZERO) return
         println(OutputMessage.APPLY_MESSAGE_START.message)
         purchaseProducts.forEach { product ->
             if (product.apply > ZERO) println("${product.name.receiptFormat(RECEIPT_START_BLANK_COUNT)}${product.apply}")
