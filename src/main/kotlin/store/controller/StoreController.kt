@@ -28,7 +28,7 @@ class StoreController(
     private fun purchaseProducts(store: Store) {
         outputView.printStoreProducts(store.getProducts())
         val purchaseProducts = retryInput {
-            val requestedProducts = createRequestedProducts()
+            val requestedProducts = createRequestedProducts(store.getProducts())
             createPurchaseProducts(store, requestedProducts)
         }
         outputView.printReceipt(purchaseProducts, isMemberShip())
@@ -63,19 +63,20 @@ class StoreController(
         }
     }
 
-    private fun createRequestedProducts(): List<RequestedProduct> {
+    private fun createRequestedProducts(products: List<Product>): List<RequestedProduct> {
         val requestedProducts = inputView.readPurchaseInput().split(DELIMITER_COMMA).map { requestedProductInput ->
-            createRequestProduct(requestedProductInput)
+            createRequestProduct(requestedProductInput, products)
         }
         return requestedProducts
     }
 
-    private fun createRequestProduct(requestedProductInput: String): RequestedProduct {
+    private fun createRequestProduct(requestedProductInput: String, products: List<Product>): RequestedProduct {
         validateRequestProductInput(requestedProductInput)
         val (name, count) = requestedProductInput.removeSurrounding(
             PURCHASE_PRODUCT_PREFIX.toString(),
             PURCHASE_PRODUCT_SUFFIX.toString()
         ).split(DELIMITER_HYPHEN)
+        requireNotNull(products.find { it.name == name }) { ErrorMessage.NON_EXISTENT_PRODUCT.getErrorMessage() }
         requireNotNull(count.toIntOrNull()) { ErrorMessage.INVALID_INPUT.getErrorMessage() }
         return RequestedProduct(name, count.toInt())
     }

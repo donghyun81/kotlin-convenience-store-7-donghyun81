@@ -12,8 +12,6 @@ class Store(
 
     fun hasProduct(requestedProduct: RequestedProduct): Boolean {
         var remainingRequestCount = requestedProduct.count
-        products.find { it.name == requestedProduct.name }
-            ?: throw IllegalArgumentException(ErrorMessage.NON_EXISTENT_PRODUCT.getErrorMessage())
         products.map { product ->
             if (product.name == requestedProduct.name) remainingRequestCount -= product.getQuantity()
         }
