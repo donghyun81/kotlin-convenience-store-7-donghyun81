@@ -130,7 +130,7 @@ class StoreController(
     private fun handleNonPromotionProduct(
         store: Store, product: RequestedProduct, nonPromotionProduct: RequestedProduct
     ): PurchaseProduct {
-        if (nonPromotionProduct.count > ZERO) return store.buyProduct(product)
+        if (nonPromotionProduct.count <= ZERO) return store.buyProduct(product)
         val isIncludingNonPromotions =
             retryInput { inputView.confirmNonPromotionalPurchase(nonPromotionProduct).isAccept() }
         if (isIncludingNonPromotions) return store.buyProduct(product)
