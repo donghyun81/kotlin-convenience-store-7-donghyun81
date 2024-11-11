@@ -48,7 +48,7 @@ class OutputView {
     private fun printPromotionProducts(purchaseProducts: List<PurchaseProduct>) {
         println(OutputMessage.APPLY_MESSAGE_START.message)
         purchaseProducts.forEach { product ->
-            if (product.apply > 0) println("${product.name.receiptFormat(RECEIPT_START_BLANK_COUNT)}${product.apply}")
+            if (product.apply > ZERO) println("${product.name.receiptFormat(RECEIPT_START_BLANK_COUNT)}${product.apply}")
         }
     }
 
@@ -83,8 +83,9 @@ class OutputView {
         purchaseProducts: List<PurchaseProduct>
     ): Int {
         val promotionPrice = purchaseProducts.map { it.promotionCount * it.price }.sumOf { it }
-        if (isMemberShip) return (totalPrice - promotionPrice).times(MEMBERSHIP_PERCENT).toInt()
-            .coerceAtMost(MAX_MEMBERSHIP_AMOUNT)
+        if (isMemberShip) {
+            return (totalPrice - promotionPrice).times(MEMBERSHIP_PERCENT).toInt().coerceAtMost(MAX_MEMBERSHIP_AMOUNT)
+        }
         return ZERO
     }
 

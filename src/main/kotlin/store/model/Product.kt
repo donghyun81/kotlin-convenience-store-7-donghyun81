@@ -1,5 +1,7 @@
 package store.model
 
+import store.common.ZERO
+
 data class Product(
     val name: String,
     val price: Int,
@@ -7,11 +9,11 @@ data class Product(
     val promotion: String?
 ) {
     fun deductQuantity(buyCount: Int) {
-        quantity = (quantity - buyCount).coerceAtLeast(0)
+        quantity = (quantity - buyCount).coerceAtLeast(ZERO)
     }
 
     fun calculateExcessQuantity(buyCount: Int): Int {
-        return (buyCount - quantity).coerceAtLeast(0)
+        return (buyCount - quantity).coerceAtLeast(ZERO)
     }
 
     fun getQuantity() = quantity
