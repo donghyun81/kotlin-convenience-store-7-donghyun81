@@ -1,6 +1,7 @@
 package store.model
 
 import camp.nextstep.edu.missionutils.DateTimes
+import store.common.ZERO
 import java.time.LocalDate
 
 class Store(
@@ -87,9 +88,5 @@ class Store(
         val excess = product.calculateExcessQuantity(purchaseRemainingQuantity)
         product.deductQuantity(purchaseRemainingQuantity)
         return excess
-    }
-
-    companion object {
-        private const val ZERO = 0
     }
 }

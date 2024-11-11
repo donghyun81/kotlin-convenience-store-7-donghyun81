@@ -1,6 +1,7 @@
 package store.controller
 
 import camp.nextstep.edu.missionutils.DateTimes
+import store.common.ZERO
 import store.common.enum.ErrorMessage
 import store.model.*
 import store.utils.retryInput
@@ -161,7 +162,6 @@ class StoreController(
     companion object {
         private const val DELIMITER_COMMA = ","
         private const val DELIMITER_HYPHEN = "-"
-        private const val ZERO = 0
         private const val ATTRIBUTES_LINE = 1
         private const val NULL_TEXT = "null"
         private const val INPUT_YES = "Y"

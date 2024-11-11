@@ -1,5 +1,6 @@
 package store.view
 
+import store.common.ZERO
 import store.common.enum.OutputMessage
 import store.model.PurchaseProduct
 import store.model.Product
@@ -110,7 +111,6 @@ class OutputView {
         private const val WON_FORM = "#,###"
         private const val HYPHEN = "-"
         private const val MINUS = "-"
-        private const val ZERO = 0
         private const val TOTAL_PURCHASE_AMOUNT = "총구매액"
         private const val TOTAL_PROMOTION_DISCOUNT = "행사 할인"
         private const val MEMBERSHIP_DISCOUNT = "멤버십할인"
