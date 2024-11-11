@@ -1,6 +1,7 @@
 package store.view
 
 import camp.nextstep.edu.missionutils.Console
+import store.common.enum.InputMessage
 import store.model.RequestedProduct
 
 class InputView {

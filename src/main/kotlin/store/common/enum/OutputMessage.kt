@@ -1,4 +1,4 @@
-package store.view
+package store.common.enum
 
 enum class OutputMessage(val message: String) {
     START_MESSAGE("안녕하세요. W편의점입니다."),

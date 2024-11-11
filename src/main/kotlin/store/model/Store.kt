@@ -1,7 +1,7 @@
 package store.model
 
 import camp.nextstep.edu.missionutils.DateTimes
-import store.controller.ErrorMessage
+import store.common.enum.ErrorMessage
 import java.time.LocalDate
 
 class Store(

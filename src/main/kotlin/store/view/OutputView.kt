@@ -1,5 +1,6 @@
 package store.view
 
+import store.common.enum.OutputMessage
 import store.model.PurchaseProduct
 import store.model.Product
 import java.text.DecimalFormat

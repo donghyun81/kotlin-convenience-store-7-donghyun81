@@ -1,4 +1,4 @@
-package store.controller
+package store.common.enum
 
 enum class ErrorMessage(private val message: String) {
     INVALID_INPUT("올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요."),
