@@ -29,7 +29,7 @@ class StoreController(
     private fun purchaseProducts(store: Store) {
         outputView.printStoreProducts(store.getProducts())
         val purchaseProducts = retryInput {
-            val requestedProducts = createRequestedProducts(store.getProducts())
+            val requestedProducts = createRequestedProducts(store)
             createPurchaseProducts(store, requestedProducts)
         }
         outputView.printReceipt(purchaseProducts, isMemberShip())
@@ -64,9 +64,11 @@ class StoreController(
         }
     }
 
-    private fun createRequestedProducts(products: List<Product>): List<RequestedProduct> {
+    private fun createRequestedProducts(store: Store): List<RequestedProduct> {
         val requestedProducts = inputView.readPurchaseInput().split(DELIMITER_COMMA).map { requestedProductInput ->
-            createRequestProduct(requestedProductInput, products)
+            val requestedProduct = createRequestProduct(requestedProductInput, store.getProducts())
+            require(store.hasProduct(requestedProduct)) { ErrorMessage.STOCK_EXCEEDED.getErrorMessage() }
+            requestedProduct
         }
         return requestedProducts
     }
@@ -95,7 +97,6 @@ class StoreController(
     private fun createPurchaseProducts(store: Store, requestedProducts: List<RequestedProduct>): List<PurchaseProduct> {
         val purchaseProducts = mutableListOf<PurchaseProduct>()
         requestedProducts.forEach { requestedProduct ->
-            require(store.hasProduct(requestedProduct)) { ErrorMessage.STOCK_EXCEEDED.getErrorMessage() }
             purchaseProducts.add(buyRequestProduct(store, requestedProduct))
         }
         return purchaseProducts.toList()
