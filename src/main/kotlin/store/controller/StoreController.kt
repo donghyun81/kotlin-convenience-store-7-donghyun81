@@ -67,10 +67,16 @@ class StoreController(
     private fun createRequestedProducts(store: Store): List<RequestedProduct> {
         val requestedProducts = inputView.readPurchaseInput().split(DELIMITER_COMMA).map { requestedProductInput ->
             val requestedProduct = createRequestProduct(requestedProductInput, store.getProducts())
-            require(store.hasProduct(requestedProduct)) { ErrorMessage.STOCK_EXCEEDED.getErrorMessage() }
             requestedProduct
-        }
+        }.mergeDuplicateProducts()
+        validateRequestProducts(requestedProducts, store)
         return requestedProducts
+    }
+
+    private fun validateRequestProducts(requestedProducts: List<RequestedProduct>, store: Store) {
+        requestedProducts.map { requestedProduct ->
+            require(store.hasProduct(requestedProduct)) { ErrorMessage.STOCK_EXCEEDED.getErrorMessage() }
+        }
     }
 
     private fun createRequestProduct(requestedProductInput: String, products: List<Product>): RequestedProduct {
@@ -153,6 +159,9 @@ class StoreController(
 
     private fun List<Product>.sortedSameNameByPromotion() =
         groupBy { it.name }.flatMap { (_, group) -> group.sortedByDescending { it.promotion } }.toList()
+
+    private fun List<RequestedProduct>.mergeDuplicateProducts() = groupBy { it.name }
+        .map { (name, requestProducts) -> RequestedProduct(name, requestProducts.sumOf { it.count }) }.toList()
 
     companion object {
         private const val DELIMITER_COMMA = ","
